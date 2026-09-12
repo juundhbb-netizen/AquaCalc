@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaCalc 🌊</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+
+        background:
+            radial-gradient(circle at 20% 20%, rgba(255,255,255,.15), transparent 20%),
+            linear-gradient(145deg, #073b4c, #087e8b, #00b4d8);
+    }
+
+    /* Background bubbles */
+    .bubble {
+        position: fixed;
+        bottom: -100px;
+        width: 30px;
+        height: 30px;
+        border: 2px solid rgba(255,255,255,.35);
+        border-radius: 50%;
+        animation: float 9s infinite ease-in;
+        pointer-events: none;
+    }
+
+    .b1 { left: 10%; animation-delay: 1s; }
+    .b2 { left: 30%; width: 18px; height: 18px; animation-delay: 4s; }
+    .b3 { left: 55%; width: 45px; height: 45px; animation-delay: 2s; }
+    .b4 { left: 80%; width: 22px; height: 22px; animation-delay: 6s; }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0);
+            opacity: 0;
+        }
+
+        20% {
+            opacity: .7;
+        }
+
+        100% {
+            transform: translateY(-120vh);
+            opacity: 0;
+        }
+    }
+
+    /* Click bubbles */
+    .click-bubble {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        border: 2px solid rgba(255,255,255,.85);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 999;
+        animation: bubble-pop .7s ease-out forwards;
+    }
+
+    @keyframes bubble-pop {
+        0% {
+            transform: translate(0, 0) scale(.4);
+            opacity: 1;
+        }
+
+        100% {
+            transform:
+                translate(var(--x), var(--y))
+                scale(1.4);
+            opacity: 0;
+        }
+    }
+
+    .calculator {
+        width: 360px;
+        padding: 22px;
+        border-radius: 30px;
+
+        background: rgba(220,250,250,.22);
+        border: 1px solid rgba(255,255,255,.35);
+        backdrop-filter: blur(18px);
+
+        box-shadow:
+            0 25px 60px rgba(0,0,0,.3),
+            inset 0 1px rgba(255,255,255,.35);
+    }
+
+    .title {
+        color: white;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .display {
+        width: 100%;
+        height: 90px;
+        padding: 15px;
+
+        border: none;
+        outline: none;
+        border-radius: 20px;
+
+        background: rgba(5,45,60,.65);
+        color: white;
+
+        text-align: right;
+        font-size: 38px;
+
+        box-shadow:
+            inset 0 5px 15px rgba(0,0,0,.25);
+    }
+
+    .keys {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    button {
+        height: 65px;
+        border: none;
+        border-radius: 18px;
+
+        font-size: 22px;
+        font-weight: bold;
+        cursor: pointer;
+
+        color: #24515b;
+        background: #fff3dc;
+
+        box-shadow:
+            0 6px 0 #d8c7aa,
+            0 10px 15px rgba(0,0,0,.18);
+
+        transition: .08s;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+    }
+
+    button:active {
+        transform: translateY(5px);
+
+        box-shadow:
+            0 1px 0 #d8c7aa,
+            0 3px 7px rgba(0,0,0,.15);
+    }
+
+    .operator {
+        background: #b9f2ee;
+        color: #075b68;
+    }
+
+    .clear {
+        background: #ffb7a8;
+        color: #713b34;
+    }
+
+    .equals {
+        background: #8de0ed;
+        color: #064b58;
+        grid-column: span 2;
+    }
+
+    .zero {
+        grid-column: span 2;
+    }
+
+    .footer {
+        text-align: center;
+        color: rgba(255,255,255,.75);
+        margin-top: 15px;
+        font-size: 12px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- Background bubbles -->
+<div class="bubble b1"></div>
+<div class="bubble b2"></div>
+<div class="bubble b3"></div>
+<div class="bubble b4"></div>
+
+<div class="calculator">
+
+    <div class="title">🌊 AquaCalc</div>
+
+    <input
+        class="display"
+        id="display"
+        value="0"
+        readonly
+    >
+
+    <div class="keys">
+
+        <button class="clear" onclick="press('C')">C</button>
+        <button onclick="press('⌫')">⌫</button>
+        <button class="operator" onclick="press('%')">%</button>
+        <button class="operator" onclick="press('/')">÷</button>
+
+        <button onclick="press('7')">7</button>
+        <button onclick="press('8')">8</button>
+        <button onclick="press('9')">9</button>
+        <button class="operator" onclick="press('*')">×</button>
+
+        <button onclick="press('4')">4</button>
+        <button onclick="press('5')">5</button>
+        <button onclick="press('6')">6</button>
+        <button class="operator" onclick="press('-')">−</button>
+
+        <button onclick="press('1')">1</button>
+        <button onclick="press('2')">2</button>
+        <button onclick="press('3')">3</button>
+        <button class="operator" onclick="press('+')">+</button>
+
+        <button class="zero" onclick="press('0')">0</button>
+        <button onclick="press('.')">.</button>
+        <button class="equals" onclick="calculate()">=</button>
+
+    </div>
+
+    <div class="footer">
+        Creamy keys • Made by Habib 🌊
+    </div>
+
+</div>
+
+<script>
+
+let display = document.getElementById("display");
+let current = "";
+
+
+/* Creamy key sound */
+function creamySound() {
+
+    const audio =
+        new (window.AudioContext ||
+        window.webkitAudioContext)();
+
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+
+    oscillator.type = "sine";
+
+    oscillator.frequency.setValueAtTime(
+        180,
+        audio.currentTime
+    );
+
+    oscillator.frequency.exponentialRampToValueAtTime(
+        90,
+        audio.currentTime + 0.07
+    );
+
+    gain.gain.setValueAtTime(
+        0.08,
+        audio.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audio.currentTime + 0.08
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+
+    oscillator.start();
+    oscillator.stop(
+        audio.currentTime + 0.08
+    );
+}
+
+
+/* Bubble particles */
+function createBubbles(x, y) {
+
+    for (let i = 0; i < 7; i++) {
+
+        const bubble =
+            document.createElement("div");
+
+        bubble.className = "click-bubble";
+
+        bubble.style.left = x + "px";
+        bubble.style.top = y + "px";
+
+        const randomX =
+            (Math.random() - 0.5) * 100;
+
+        const randomY =
+            (Math.random() - 0.5) * 100;
+
+        bubble.style.setProperty(
+            "--x",
+            randomX + "px"
+        );
+
+        bubble.style.setProperty(
+            "--y",
+            randomY + "px"
+        );
+
+        document.body.appendChild(bubble);
+
+        setTimeout(() => {
+            bubble.remove();
+        }, 700);
+    }
+}
+
+
+/* Calculator buttons */
+function press(value) {
+
+    creamySound();
+
+    if (value === "C") {
+
+        current = "";
+        display.value = "0";
+
+        return;
+    }
+
+    if (value === "⌫") {
+
+        current =
+            current.slice(0, -1);
+
+        display.value =
+            current || "0";
+
+        return;
+    }
+
+    current += value;
+
+    display.value = current;
+}
+
+
+/* Calculate */
+function calculate() {
+
+    creamySound();
+
+    try {
+
+        if (!current) return;
+
+        let result =
+            Function(
+                '"use strict"; return (' +
+                current +
+                ')'
+            )();
+
+        display.value = result;
+
+        current = String(result);
+
+    } catch {
+
+        display.value = "Error";
+        current = "";
+    }
+}
+
+
+/* Mouse / touch bubble effect */
+document.addEventListener(
+    "click",
+    function(event) {
+
+        createBubbles(
+            event.clientX,
+            event.clientY
+        );
+
+    }
+);
+
+
+/* Keyboard support */
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        const key = event.key;
+
+        if ("0123456789.+-*/%".includes(key)) {
+            press(key);
+        }
+
+        if (key === "Enter") {
+            calculate();
+        }
+
+        if (key === "Backspace") {
+            press("⌫");
+        }
+
+        if (key === "Escape") {
+            press("C");
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
